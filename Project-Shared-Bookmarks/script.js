@@ -21,7 +21,7 @@ for (const userId of userIds) {
 }
 
 function displayBookmarks(userId) {
-  const bookmarks = getData(userId);
+  const bookmarks = getData(userId) || [];
 
   bookmarkList.innerHTML = "";
 
@@ -103,7 +103,7 @@ bookmarkForm.addEventListener("submit", (event) => {
     return;
   }
 
-  const bookmarks = getData(selectedUserId);
+  const bookmarks = getData(selectedUserId) || [];
 
   const newBookmark = {
     url: urlInput.value,
