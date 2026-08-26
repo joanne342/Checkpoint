@@ -23,6 +23,17 @@ const daysInMonth = new Date(
     0
 ).getDate();
 
+const firstDay = new Date(
+    currentYear,
+    today.getMonth(),
+    1
+);
+
+const firstDayOfWeek = firstDay.getDay();
+
+console.log("First day of the month:", firstDay);
+console.log("Day of the week:", firstDayOfWeek);
+
 for (let day = 1; day <= daysInMonth; day++) {
     const dayBox = document.createElement("div");
     dayBox.textContent = day;
