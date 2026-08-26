@@ -3,9 +3,14 @@
 // Note that when running locally, in order to open a web page which uses modules, you must serve the directory over HTTP e.g. with https://www.npmjs.com/package/http-server
 // You can't open the index.html file using a file:// URL.
 
-import { getGreeting } from "./common.mjs";
-import daysData from "./days.json" with { type: "json" };
+const today = new Date();
 
-window.onload = function() {
-    document.querySelector("body").innerText = `${getGreeting()} - there are ${daysData.length} known days`;
-}
+const currentMonth = today.toLocaleString("en-GB", {
+    month: "long"
+});
+
+const currentYear = today.getFullYear();
+
+const monthDisplay = document.querySelector("#current-month");
+
+monthDisplay.textContent = `${currentMonth} ${currentYear}`;
