@@ -1,9 +1,48 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <script type="module" src="common.mjs"></script>
-        <script type="module" src="web.mjs"></script>
-    </head>
-    <body>
-    </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Days Calendar</title>
+
+    <script type="module" src="web.mjs"></script>
+</head>
+
+<body>
+    <main>
+        <h1>Days Calendar</h1>
+
+        <section aria-labelledby="calendar-heading">
+            <h2 id="calendar-heading">Calendar</h2>
+
+            <div>
+                <button id="previous-month" type="button">
+                    Previous month
+                </button>
+
+                <label for="month-select">Month</label>
+                <select id="month-select">
+                    <!-- web.mjs adds the months -->
+                </select>
+
+                <label for="year-select">Year</label>
+                <select id="year-select">
+                    <!-- web.mjs adds the years -->
+                </select>
+
+                <button id="next-month" type="button">
+                    Next month
+                </button>
+            </div>
+
+            <div
+                id="calendar"
+                aria-live="polite"
+                aria-label="Calendar"
+            >
+                <!-- web.mjs generates the calendar here -->
+            </div>
+        </section>
+    </main>
+</body>
 </html>
