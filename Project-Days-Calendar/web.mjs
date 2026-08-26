@@ -26,14 +26,23 @@ const months = [
 ];
 
 const weekdays = [
-    "Sun",
-    "Mon",
-    "Tue",
-    "Wed",
-    "Thu",
-    "Fri",
-    "Sat"
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
 ];
+
+let commemorativeDays = [];
+
+async function loadDays() {
+    const response = await fetch("days.json");
+    commemorativeDays = await response.json();
+
+    renderCalendar();
+}
 
 function populateMonthSelect() {
     months.forEach((month, index) => {
@@ -61,15 +70,66 @@ function populateYearSelect() {
     }
 }
 
+function getCommemorativeDayDate(day, year) {
+    const month = months.indexOf(day.monthName);
+    const weekday = weekdays.indexOf(day.dayName);
+
+    const daysInMonth = new Date(
+        year,
+        month + 1,
+        0
+    ).getDate();
+
+    const matchingDays = [];
+
+    for (let date = 1; date <= daysInMonth; date++) {
+        const currentDate = new Date(year, month, date);
+
+        if (currentDate.getDay() === weekday) {
+            matchingDays.push(date);
+        }
+    }
+
+    if (day.occurrence === "last") {
+        return matchingDays[matchingDays.length - 1];
+    }
+
+    const occurrenceNumbers = {
+        first: 1,
+        second: 2,
+        third: 3,
+        fourth: 4,
+        fifth: 5
+    };
+
+    const occurrenceNumber = occurrenceNumbers[day.occurrence];
+
+    return matchingDays[occurrenceNumber - 1];
+}
+
+function getDaysForDate(year, month, date) {
+    return commemorativeDays.filter((day) => {
+        const dayMonth = months.indexOf(day.monthName);
+
+        if (dayMonth !== month) {
+            return false;
+        }
+
+        const commemorativeDate = getCommemorativeDayDate(day, year);
+
+        return commemorativeDate === date;
+    });
+}
+
 function renderCalendar() {
     calendar.innerHTML = "";
 
-    monthDisplay.textContent = `${months[displayedMonth]} ${displayedYear}`;
+    monthDisplay.textContent =
+        `${months[displayedMonth]} ${displayedYear}`;
 
     monthSelect.value = displayedMonth;
     yearSelect.value = displayedYear;
 
-    // Add weekday headings
     weekdays.forEach((weekday) => {
         const heading = document.createElement("div");
 
@@ -93,7 +153,6 @@ function renderCalendar() {
 
     const firstDayOfWeek = firstDay.getDay();
 
-    // Add empty spaces before the first day
     for (let i = 0; i < firstDayOfWeek; i++) {
         const emptyBox = document.createElement("div");
 
@@ -103,21 +162,38 @@ function renderCalendar() {
         calendar.appendChild(emptyBox);
     }
 
-    // Add the days
     for (let day = 1; day <= daysInMonth; day++) {
         const dayBox = document.createElement("div");
 
-        dayBox.textContent = day;
+        dayBox.classList.add("calendar-day");
 
-        // Highlight today
+        const dayNumber = document.createElement("div");
+        dayNumber.textContent = day;
+
+        dayBox.appendChild(dayNumber);
+
         if (
             day === today.getDate() &&
             displayedMonth === today.getMonth() &&
             displayedYear === today.getFullYear()
         ) {
             dayBox.classList.add("today");
-            dayBox.setAttribute("aria-label", `Today, ${day}`);
         }
+
+        const daysOnThisDate = getDaysForDate(
+            displayedYear,
+            displayedMonth,
+            day
+        );
+
+        daysOnThisDate.forEach((commemorativeDay) => {
+            const event = document.createElement("div");
+
+            event.textContent = commemorativeDay.name;
+            event.classList.add("commemorative-day");
+
+            dayBox.appendChild(event);
+        });
 
         calendar.appendChild(dayBox);
     }
@@ -159,4 +235,5 @@ yearSelect.addEventListener("change", () => {
 
 populateMonthSelect();
 populateYearSelect();
-renderCalendar();
+
+loadDays();
