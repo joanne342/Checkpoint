@@ -1,8 +1,13 @@
 body {
     font-family: Arial, sans-serif;
-    max-width: 800px;
+    max-width: 900px;
     margin: 40px auto;
     padding: 20px;
+}
+
+h1,
+h2 {
+    text-align: center;
 }
 
 #calendar {
@@ -12,11 +17,26 @@ body {
     margin-top: 20px;
 }
 
+.calendar-day-name {
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+}
+
 #calendar div {
     border: 1px solid #ccc;
-    min-height: 60px;
+    min-height: 70px;
     padding: 10px;
     box-sizing: border-box;
+}
+
+#calendar .empty {
+    border: none;
+}
+
+#calendar .today {
+    font-weight: bold;
+    border: 2px solid black;
 }
 
 button,
