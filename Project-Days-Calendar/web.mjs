@@ -1,44 +1,125 @@
-// This is a placeholder file which shows how you can access functions and data defined in other files.
-// It can be loaded into index.html.
-// Note that when running locally, in order to open a web page which uses modules, you must serve the directory over HTTP.
-// You can't open the index.html file using a file:// URL.
-
 const today = new Date();
 
-const currentMonth = today.toLocaleString("en-GB", {
-    month: "long"
+let displayedMonth = today.getMonth();
+let displayedYear = today.getFullYear();
+
+const monthSelect = document.querySelector("#month-select");
+const yearSelect = document.querySelector("#year-select");
+const monthDisplay = document.querySelector("#current-month");
+const calendar = document.querySelector("#calendar");
+const previousButton = document.querySelector("#previous-month");
+const nextButton = document.querySelector("#next-month");
+
+const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+];
+
+function populateMonthSelect() {
+    months.forEach((month, index) => {
+        const option = document.createElement("option");
+
+        option.value = index;
+        option.textContent = month;
+
+        monthSelect.appendChild(option);
+    });
+}
+
+function populateYearSelect() {
+    for (let year = today.getFullYear() - 10; year <= today.getFullYear() + 10; year++) {
+        const option = document.createElement("option");
+
+        option.value = year;
+        option.textContent = year;
+
+        yearSelect.appendChild(option);
+    }
+}
+
+function renderCalendar() {
+    calendar.innerHTML = "";
+
+    monthDisplay.textContent = `${months[displayedMonth]} ${displayedYear}`;
+
+    monthSelect.value = displayedMonth;
+    yearSelect.value = displayedYear;
+
+    const firstDay = new Date(
+        displayedYear,
+        displayedMonth,
+        1
+    );
+
+    const daysInMonth = new Date(
+        displayedYear,
+        displayedMonth + 1,
+        0
+    ).getDate();
+
+    const firstDayOfWeek = firstDay.getDay();
+
+    for (let i = 0; i < firstDayOfWeek; i++) {
+        const emptyBox = document.createElement("div");
+
+        emptyBox.setAttribute("aria-hidden", "true");
+
+        calendar.appendChild(emptyBox);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayBox = document.createElement("div");
+
+        dayBox.textContent = day;
+
+        calendar.appendChild(dayBox);
+    }
+}
+
+previousButton.addEventListener("click", () => {
+    displayedMonth--;
+
+    if (displayedMonth < 0) {
+        displayedMonth = 11;
+        displayedYear--;
+    }
+
+    renderCalendar();
 });
 
-const currentYear = today.getFullYear();
+nextButton.addEventListener("click", () => {
+    displayedMonth++;
 
-const monthDisplay = document.querySelector("#current-month");
+    if (displayedMonth > 11) {
+        displayedMonth = 0;
+        displayedYear++;
+    }
 
-monthDisplay.textContent = `${currentMonth} ${currentYear}`;
+    renderCalendar();
+});
 
-const calendar = document.querySelector("#calendar");
+monthSelect.addEventListener("change", () => {
+    displayedMonth = Number(monthSelect.value);
 
-const daysInMonth = new Date(
-    currentYear,
-    today.getMonth() + 1,
-    0
-).getDate();
+    renderCalendar();
+});
 
-const firstDay = new Date(
-    currentYear,
-    today.getMonth(),
-    1
-);
+yearSelect.addEventListener("change", () => {
+    displayedYear = Number(yearSelect.value);
 
-const firstDayOfWeek = firstDay.getDay();
+    renderCalendar();
+});
 
-for (let i = 0; i < firstDayOfWeek; i++) {
-    const emptyBox = document.createElement("div");
-    emptyBox.setAttribute("aria-hidden", "true");
-    calendar.appendChild(emptyBox);
-}
-
-for (let day = 1; day <= daysInMonth; day++) {
-    const dayBox = document.createElement("div");
-    dayBox.textContent = day;
-    calendar.appendChild(dayBox);
-}
+populateMonthSelect();
+populateYearSelect();
+renderCalendar();
