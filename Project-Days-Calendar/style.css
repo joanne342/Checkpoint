@@ -1,0 +1,26 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+#calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    margin-top: 20px;
+}
+
+#calendar div {
+    border: 1px solid #ccc;
+    min-height: 60px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+button,
+select {
+    padding: 8px;
+    margin: 5px;
+}
