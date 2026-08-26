@@ -31,8 +31,11 @@ const firstDay = new Date(
 
 const firstDayOfWeek = firstDay.getDay();
 
-console.log("First day of the month:", firstDay);
-console.log("Day of the week:", firstDayOfWeek);
+for (let i = 0; i < firstDayOfWeek; i++) {
+    const emptyBox = document.createElement("div");
+    emptyBox.setAttribute("aria-hidden", "true");
+    calendar.appendChild(emptyBox);
+}
 
 for (let day = 1; day <= daysInMonth; day++) {
     const dayBox = document.createElement("div");
