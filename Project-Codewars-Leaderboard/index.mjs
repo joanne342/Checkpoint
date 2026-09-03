@@ -1,4 +1,3 @@
-```js
 // Get the elements we need from the HTML
 const form = document.querySelector("#leaderboard-form");
 const usernameInput = document.querySelector("#usernames");
@@ -227,4 +226,4 @@ form.addEventListener("submit", async (event) => {
 rankingSelect.addEventListener("change", () => {
   renderLeaderboard(rankingSelect.value);
 });
-```
+
