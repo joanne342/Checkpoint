@@ -1,13 +1,77 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Codewars leaderboard</title>
+  <title>Codewars Leaderboard</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  
-</body>
 
-<script src="index.mjs" type="module"></script>
+<body>
+  <main>
+    <h1>Codewars Leaderboard</h1>
+
+    <!-- Username input -->
+    <form id="leaderboard-form">
+      <label for="usernames">
+        Codewars usernames
+      </label>
+
+      <input
+        type="text"
+        id="usernames"
+        name="usernames"
+        placeholder="username1, username2, username3"
+        required
+      >
+
+      <button type="submit">
+        Get leaderboard
+      </button>
+    </form>
+
+    <!-- Messages for invalid users / API errors -->
+    <div
+      id="message"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    <!-- Ranking selector -->
+    <section>
+      <label for="ranking">
+        Ranking
+      </label>
+
+      <select id="ranking" name="ranking">
+        <option value="overall">Overall</option>
+      </select>
+    </section>
+
+    <!-- Leaderboard -->
+    <section>
+      <h2>Leaderboard</h2>
+
+      <table>
+        <caption>Codewars leaderboard</caption>
+
+        <thead>
+          <tr>
+            <th scope="col">Username</th>
+            <th scope="col">Clan</th>
+            <th scope="col">Score</th>
+          </tr>
+        </thead>
+
+        <tbody id="leaderboard-body">
+          <!-- JavaScript inserts rows here -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="index.mjs" type="module"></script>
+</body>
 </html>
+```
