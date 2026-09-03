@@ -1,33 +1,276 @@
-// This is a placeholder file which shows how you use the nock library to
-// "mock" fetch requests, replacing real requests with fake ones that you
-// control in the test. This means you can "force" the fetch request to return
-// data in the format that you want.
-// IMPORTANT: You _must_ run npm install within the Project-Codewars-Leaderboard
-// folder for this to work.
-// You can change or delete the contents of the file once you have understood
-// how it works.
-
 import test from "node:test";
 import assert from "node:assert";
 import nock from "nock";
-import { makeFetchRequest } from "./index.mjs";
 
-test("mocks a fetch function", async () => {
-  // Create a fetch request "mock" using the nock library, which "replaces"
-  // real requests with fake ones that we can control in the test using nock
-  // functions.
-  // In this example, we set up nock so that it looks for GET requests to
-  // https://example.com/test (no other URLs will work) and responds with a 200
-  // HTTP status code, and the body {"user": "someone"}.
-  const scope = nock("https://example.com").get("/test").reply(200, JSON.stringify({ user: "someone" }));
+import {
+  fetchUser,
+  parseUsernames,
+  getAllLanguages,
+  getScore,
+  getLeaderboard,
+} from "./index.mjs";
 
-  // Check that the response we got back included the fake body we set up.
-  const response = await makeFetchRequest();
-  const parsedResponse = await response.json();
-  assert(parsedResponse.user === "someone");
+const codewarsApi = "https://www.codewars.com";
 
-  // Ensure that a fetch request has been replaced by the nock library. This
-  // helps ensure that you're not making real fetch requests that don't match
-  // the nock configuration.
-  assert(scope.isDone() === true, "No matching fetch request has been made");
+/*
+ * ---------------------------------------------------------
+ * 1. Parse comma-separated usernames
+ * ---------------------------------------------------------
+ */
+
+test("parseUsernames removes spaces and empty entries", () => {
+  const result = parseUsernames(
+    " alice, bob , , charlie "
+  );
+
+  assert.deepStrictEqual(result, [
+    "alice",
+    "bob",
+    "charlie",
+  ]);
 });
+
+
+/*
+ * ---------------------------------------------------------
+ * 2. Fetch a Codewars user
+ * ---------------------------------------------------------
+ */
+
+test("fetchUser returns a user's Codewars data", async () => {
+  const user = {
+    username: "alice",
+    clan: "CodeYourFuture",
+    ranks: {
+      overall: {
+        score: 500,
+        rank: 5,
+      },
+      languages: {
+        JavaScript: {
+          score: 300,
+          rank: 10,
+        },
+      },
+    },
+  };
+
+  const scope = nock(codewarsApi)
+    .get("/api/v1/users/alice")
+    .reply(200, user);
+
+  const result = await fetchUser("alice");
+
+  assert.deepStrictEqual(result, user);
+  assert.strictEqual(scope.isDone(), true);
+});
+
+
+/*
+ * ---------------------------------------------------------
+ * 3. Invalid username
+ * ---------------------------------------------------------
+ */
+
+test("fetchUser reports a 404 for an invalid username", async () => {
+  const scope = nock(codewarsApi)
+    .get("/api/v1/users/not-a-real-user")
+    .reply(404);
+
+  await assert.rejects(
+    () => fetchUser("not-a-real-user"),
+    /not found/i
+  );
+
+  assert.strictEqual(scope.isDone(), true);
+});
+
+
+/*
+ * ---------------------------------------------------------
+ * 4. Dynamically find all languages
+ * ---------------------------------------------------------
+ */
+
+test("getAllLanguages finds languages across all users", () => {
+  const users = [
+    {
+      ranks: {
+        languages: {
+          JavaScript: { score: 100 },
+          Python: { score: 200 },
+        },
+      },
+    },
+    {
+      ranks: {
+        languages: {
+          Python: { score: 300 },
+          Ruby: { score: 400 },
+        },
+      },
+    },
+  ];
+
+  const result = getAllLanguages(users);
+
+  assert.deepStrictEqual(result, [
+    "JavaScript",
+    "Python",
+    "Ruby",
+  ]);
+});
+
+
+/*
+ * ---------------------------------------------------------
+ * 5. Get overall score
+ * ---------------------------------------------------------
+ */
+
+test("getScore returns the overall score", () => {
+  const user = {
+    ranks: {
+      overall: {
+        score: 750,
+      },
+    },
+  };
+
+  assert.strictEqual(
+    getScore(user, "overall"),
+    750
+  );
+});
+
+
+/*
+ * ---------------------------------------------------------
+ * 6. Get language score
+ * ---------------------------------------------------------
+ */
+
+test("getScore returns the selected language score", () => {
+  const user = {
+    ranks: {
+      overall: {
+        score: 750,
+      },
+      languages: {
+        JavaScript: {
+          score: 450,
+        },
+      },
+    },
+  };
+
+  assert.strictEqual(
+    getScore(user, "JavaScript"),
+    450
+  );
+});
+
+
+/*
+ * ---------------------------------------------------------
+ * 7. Filter and sort the leaderboard
+ * ---------------------------------------------------------
+ */
+
+test("getLeaderboard excludes users without the selected language and sorts by score", () => {
+  const users = [
+    {
+      username: "alice",
+      clan: "CYF",
+      ranks: {
+        overall: { score: 500 },
+        languages: {
+          JavaScript: { score: 200 },
+        },
+      },
+    },
+    {
+      username: "bob",
+      clan: "CYF",
+      ranks: {
+        overall: { score: 800 },
+        languages: {
+          JavaScript: { score: 600 },
+        },
+      },
+    },
+    {
+      username: "charlie",
+      clan: "CYF",
+      ranks: {
+        overall: { score: 700 },
+        languages: {
+          Python: { score: 900 },
+        },
+      },
+    },
+  ];
+
+  const result = getLeaderboard(users, "JavaScript");
+
+  assert.deepStrictEqual(result, [
+    {
+      username: "bob",
+      clan: "CYF",
+      score: 600,
+    },
+    {
+      username: "alice",
+      clan: "CYF",
+      score: 200,
+    },
+  ]);
+});
+
+
+/*
+ * ---------------------------------------------------------
+ * 8. Overall leaderboard sorting
+ * ---------------------------------------------------------
+ */
+
+test("getLeaderboard sorts the overall ranking highest first", () => {
+  const users = [
+    {
+      username: "alice",
+      clan: "CYF",
+      ranks: {
+        overall: { score: 100 },
+        languages: {},
+      },
+    },
+    {
+      username: "bob",
+      clan: "CYF",
+      ranks: {
+        overall: { score: 500 },
+        languages: {},
+      },
+    },
+    {
+      username: "charlie",
+      clan: "CYF",
+      ranks: {
+        overall: { score: 300 },
+        languages: {},
+      },
+    },
+  ];
+
+  const result = getLeaderboard(users, "overall");
+
+  assert.deepStrictEqual(
+    result.map((user) => user.username),
+    [
+      "bob",
+      "charlie",
+      "alice",
+    ]
+  );
+});
+
