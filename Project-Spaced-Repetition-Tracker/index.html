@@ -1,8 +1,77 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <script type="module" src="script.mjs"></script>
-  </head>
-  <body>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Spaced Repetition Tracker</title>
+</head>
+
+<body>
+  <main>
+    <h1>Spaced Repetition Tracker</h1>
+
+    <!-- USER SELECTION -->
+    <section>
+      <label for="user-select">Select a user</label>
+
+      <select id="user-select">
+        <option value="" selected disabled>Choose a user</option>
+      </select>
+    </section>
+
+
+    <!-- AGENDA -->
+    <section aria-labelledby="agenda-heading">
+      <h2 id="agenda-heading">Revision agenda</h2>
+
+      <p id="empty-message">
+        This user has no topics to revise.
+      </p>
+
+      <ul id="agenda"></ul>
+    </section>
+
+
+    <!-- ADD TOPIC FORM -->
+    <section aria-labelledby="form-heading">
+      <h2 id="form-heading">Add a topic</h2>
+
+      <form id="topic-form">
+
+        <fieldset>
+          <legend>Topic details</legend>
+
+          <div>
+            <label for="topic">Topic</label>
+            <input
+              id="topic"
+              name="topic"
+              type="text"
+              required
+            >
+          </div>
+
+          <div>
+            <label for="learned-date">Date learned</label>
+            <input
+              id="learned-date"
+              name="learned-date"
+              type="date"
+              required
+            >
+          </div>
+
+          <button type="submit">
+            Add topic
+          </button>
+
+        </fieldset>
+
+      </form>
+    </section>
+  </main>
+
+  <script type="module" src="script.mjs"></script>
+</body>
 </html>
