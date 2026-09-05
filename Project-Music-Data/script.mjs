@@ -4,36 +4,37 @@ import {
   getSong
 } from "./data.mjs";
 
-const userSelect = document.querySelector("#userSelect");
-const results = document.querySelector("#results");
+const userSelect =
+  typeof document !== "undefined"
+    ? document.querySelector("#userSelect")
+    : null;
 
-// Add users to the dropdown
-getUserIDs().forEach(userID => {
-  const option = document.createElement("option");
+const results =
+  typeof document !== "undefined"
+    ? document.querySelector("#results")
+    : null;
 
-  option.value = userID;
-  option.textContent = userID;
+// Populate the user dropdown
+if (userSelect) {
+  getUserIDs().forEach(userID => {
+    const option = document.createElement("option");
+    option.value = userID;
+    option.textContent = userID;
+    userSelect.appendChild(option);
+  });
 
-  userSelect.appendChild(option);
-});
-
-// When the user selects a user
-userSelect.addEventListener("change", event => {
-  const userID = event.target.value;
-
-  renderResults(userID);
-});
+  userSelect.addEventListener("change", event => {
+    const userID = event.target.value;
+    renderResults(userID);
+  });
+}
 
 
 // --------------------
-// General helper functions
+// Shared calculations
 // --------------------
 
-function tallyMetrics(
-  events,
-  keyFunction,
-  valueFunction = () => 1
-) {
+function tallyMetrics(events, keyFunction, valueFunction = () => 1) {
   const totals = {};
 
   events.forEach(event => {
@@ -69,23 +70,10 @@ function getWinner(totals) {
 }
 
 
-function getDateOnly(timestamp) {
-  return new Date(timestamp).toISOString().slice(0, 10);
-}
-
-
-function getUniqueDates(events) {
-  const dates = events.map(event => getDateOnly(event.timestamp));
-
-  return [...new Set(dates)].sort();
-}
-
-
 // --------------------
-// Questions 1–4
+// Q1 - Most listened-to song
 // --------------------
 
-// Q1: Most listened-to song by number of listens
 function getMostListenedSong(userID) {
   const events = getListenEvents(userID);
 
@@ -102,7 +90,6 @@ function getMostListenedSong(userID) {
 }
 
 
-// Q1: Most listened-to song by listening time
 function getMostListenedSongByTime(userID) {
   const events = getListenEvents(userID);
 
@@ -120,7 +107,10 @@ function getMostListenedSongByTime(userID) {
 }
 
 
-// Q2: Most listened-to artist by number of listens
+// --------------------
+// Q2 - Most listened-to artist
+// --------------------
+
 function getMostListenedArtist(userID) {
   const events = getListenEvents(userID);
 
@@ -137,7 +127,6 @@ function getMostListenedArtist(userID) {
 }
 
 
-// Q2: Most listened-to artist by listening time
 function getMostListenedArtistByTime(userID) {
   const events = getListenEvents(userID);
 
@@ -156,21 +145,20 @@ function getMostListenedArtistByTime(userID) {
 
 
 // --------------------
-// Question 3: Friday night
+// Q3 - Friday night
 // --------------------
 
 function isFridayNight(timestamp) {
   const date = new Date(timestamp);
-
   const day = date.getDay();
   const hour = date.getHours();
 
-  // Friday from 5pm onwards
+  // Friday 17:00 or later
   if (day === 5 && hour >= 17) {
     return true;
   }
 
-  // Saturday before 4am
+  // Saturday before 04:00
   if (day === 6 && hour < 4) {
     return true;
   }
@@ -182,13 +170,12 @@ function isFridayNight(timestamp) {
 function getFridayNightEvents(userID) {
   const events = getListenEvents(userID);
 
-  return events.filter(event =>
-    isFridayNight(event.timestamp)
+  return events.filter(
+    event => isFridayNight(event.timestamp)
   );
 }
 
 
-// Q3: Most listened-to Friday-night song by number of listens
 function getMostListenedFridayNightSong(userID) {
   const events = getFridayNightEvents(userID);
 
@@ -205,7 +192,6 @@ function getMostListenedFridayNightSong(userID) {
 }
 
 
-// Q3: Most listened-to Friday-night song by listening time
 function getMostListenedFridayNightSongByTime(userID) {
   const events = getFridayNightEvents(userID);
 
@@ -224,45 +210,8 @@ function getMostListenedFridayNightSongByTime(userID) {
 
 
 // --------------------
-// Question 5: Longest streak
+// Q5 - Longest listening streak
 // --------------------
-
-function getLongestStreakForSong(events) {
-  const dates = events.map(event =>
-    getDateOnly(event.timestamp)
-  );
-
-  const uniqueDates = [...new Set(dates)].sort();
-
-  if (uniqueDates.length === 0) {
-    return 0;
-  }
-
-  let longestStreak = 1;
-  let currentStreak = 1;
-
-  for (let i = 1; i < uniqueDates.length; i++) {
-    const previousDate = new Date(uniqueDates[i - 1]);
-    const currentDate = new Date(uniqueDates[i]);
-
-    const difference =
-      (currentDate - previousDate) /
-      (1000 * 60 * 60 * 24);
-
-    if (difference === 1) {
-      currentStreak++;
-    } else {
-      currentStreak = 1;
-    }
-
-    if (currentStreak > longestStreak) {
-      longestStreak = currentStreak;
-    }
-  }
-
-  return longestStreak;
-}
-
 
 function getLongestStreak(userID) {
   const events = getListenEvents(userID);
@@ -271,27 +220,23 @@ function getLongestStreak(userID) {
     return null;
   }
 
-  const eventsBySong = {};
+  let bestSong = events[0].song_id;
+  let bestStreak = 1;
 
-  events.forEach(event => {
-    if (!eventsBySong[event.song_id]) {
-      eventsBySong[event.song_id] = [];
+  let currentSong = events[0].song_id;
+  let currentStreak = 1;
+
+  for (let i = 1; i < events.length; i++) {
+    if (events[i].song_id === currentSong) {
+      currentStreak++;
+    } else {
+      currentSong = events[i].song_id;
+      currentStreak = 1;
     }
 
-    eventsBySong[event.song_id].push(event);
-  });
-
-  let bestSong = null;
-  let bestStreak = 0;
-
-  for (const songID in eventsBySong) {
-    const streak = getLongestStreakForSong(
-      eventsBySong[songID]
-    );
-
-    if (streak > bestStreak) {
-      bestStreak = streak;
-      bestSong = songID;
+    if (currentStreak > bestStreak) {
+      bestStreak = currentStreak;
+      bestSong = currentSong;
     }
   }
 
@@ -303,8 +248,22 @@ function getLongestStreak(userID) {
 
 
 // --------------------
-// Question 6: Everyday songs
+// Q6 - Songs listened to every day
 // --------------------
+
+function getDateOnly(timestamp) {
+  return timestamp.slice(0, 10);
+}
+
+
+function getUniqueDates(events) {
+  const dates = events.map(
+    event => getDateOnly(event.timestamp)
+  );
+
+  return [...new Set(dates)].sort();
+}
+
 
 function getEverydaySongs(userID) {
   const events = getListenEvents(userID);
@@ -342,7 +301,7 @@ function getEverydaySongs(userID) {
 
 
 // --------------------
-// Question 7: Top genres
+// Q7 - Top genres
 // --------------------
 
 function getTopGenres(userID) {
@@ -364,7 +323,7 @@ function getTopGenres(userID) {
 
 
 // --------------------
-// Formatting functions
+// Formatting
 // --------------------
 
 function formatDuration(seconds) {
@@ -422,7 +381,7 @@ function formatLongestStreak(result) {
 
   const song = getSong(result.songID);
 
-  return `${song.title} — ${song.artist} (${result.streak} days)`;
+  return `${song.title} — ${song.artist} (${result.streak} consecutive listens)`;
 }
 
 
@@ -434,7 +393,6 @@ function formatEverydaySongs(songIDs) {
   return songIDs
     .map(songID => {
       const song = getSong(songID);
-
       return `${song.title} — ${song.artist}`;
     })
     .join(", ");
@@ -477,56 +435,43 @@ function renderResults(userID) {
 
   results.innerHTML = "";
 
-  // User has no listening data
+  // User with no listening data
   if (events.length === 0) {
-    results.textContent =
-      "This user didn't listen to any songs.";
-
+    results.textContent = "This user didn't listen to any songs.";
     return;
   }
 
-
-  // Q1 — Most listened-to song
-  const mostListenedSong =
-    getMostListenedSong(userID);
+  // Q1
+  const mostListenedSong = getMostListenedSong(userID);
 
   renderQuestion(
     "Most listened-to song",
     formatSongResult(mostListenedSong)
   );
 
-
-  // Q1 — Most listened-to song by time
-  const songByTime =
-    getMostListenedSongByTime(userID);
+  const songByTime = getMostListenedSongByTime(userID);
 
   renderQuestion(
     "Most listened-to song by listening time",
     formatSongTimeResult(songByTime)
   );
 
-
-  // Q2 — Most listened-to artist
-  const mostListenedArtist =
-    getMostListenedArtist(userID);
+  // Q2
+  const mostListenedArtist = getMostListenedArtist(userID);
 
   renderQuestion(
     "Most listened-to artist",
     formatArtistResult(mostListenedArtist)
   );
 
-
-  // Q2 — Most listened-to artist by time
-  const artistByTime =
-    getMostListenedArtistByTime(userID);
+  const artistByTime = getMostListenedArtistByTime(userID);
 
   renderQuestion(
     "Most listened-to artist by listening time",
     formatArtistTimeResult(artistByTime)
   );
 
-
-  // Q3 — Most listened-to Friday-night song
+  // Q3
   const fridayNightSong =
     getMostListenedFridayNightSong(userID);
 
@@ -535,8 +480,6 @@ function renderResults(userID) {
     formatSongResult(fridayNightSong)
   );
 
-
-  // Q3 — Friday-night song by time
   const fridaySongByTime =
     getMostListenedFridayNightSongByTime(userID);
 
@@ -545,30 +488,24 @@ function renderResults(userID) {
     formatSongTimeResult(fridaySongByTime)
   );
 
-
-  // Q5 — Longest listening streak
-  const longestStreak =
-    getLongestStreak(userID);
+  // Q5
+  const longestStreak = getLongestStreak(userID);
 
   renderQuestion(
     "Longest listening streak",
     formatLongestStreak(longestStreak)
   );
 
-
-  // Q6 — Songs listened to every day
-  const everydaySongs =
-    getEverydaySongs(userID);
+  // Q6
+  const everydaySongs = getEverydaySongs(userID);
 
   renderQuestion(
     "Songs listened to every day",
     formatEverydaySongs(everydaySongs)
   );
 
-
-  // Q7 — Top genres
-  const topGenres =
-    getTopGenres(userID);
+  // Q7
+  const topGenres = getTopGenres(userID);
 
   const genreTitle =
     topGenres.length === 1
@@ -580,3 +517,22 @@ function renderResults(userID) {
     formatTopGenres(topGenres)
   );
 }
+
+
+// --------------------
+// Exports for testing
+// --------------------
+
+export {
+  tallyMetrics,
+  getWinner,
+  getMostListenedSong,
+  getMostListenedSongByTime,
+  getMostListenedArtist,
+  getMostListenedArtistByTime,
+  getMostListenedFridayNightSong,
+  getMostListenedFridayNightSongByTime,
+  getLongestStreak,
+  getEverydaySongs,
+  getTopGenres
+};
