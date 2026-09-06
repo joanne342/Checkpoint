@@ -55,7 +55,8 @@ function populateUsers() {
 // ----------------------------------------
 
 function displayAgenda(userId) {
-  const data = getData(userId);
+  // Default to empty array [] if localStorage returns null for new users
+  const data = getData(userId) || [];
 
   const upcomingItems = getUpcomingAgendaItems(
     data,
@@ -105,6 +106,7 @@ topicForm.addEventListener("submit", (event) => {
   const learnedDate = learnedDateInput.value;
 
   if (!userId) {
+    alert("Please select a user first.");
     return;
   }
 
